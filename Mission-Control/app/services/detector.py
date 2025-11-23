@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 from app.core.config import settings
-from app.core.drone_state import mission_state
+from app.services.mission.coordinator import coordinator
 import threading
 import time
 
@@ -81,11 +81,25 @@ class VideoStreamer:
                 conf = float(box.conf[0])
                 if cls == 0 and conf > 0.5: # Person class
                     # Simulate GPS based on drone position (mock)
-                    lat = mission_state.scout.lat + (np.random.random() - 0.5) * 0.0001
-                    lon = mission_state.scout.lon + (np.random.random() - 0.5) * 0.0001
+                    lat = coordinator.scout.telemetry.lat + (np.random.random() - 0.5) * 0.0001
+                    lon = coordinator.scout.telemetry.lon + (np.random.random() - 0.5) * 0.0001
                     
-                    # Add to state
-                    mission_state.add_survivor(lat, lon, conf)
+                    # Save image crop
+                    x1, y1, x2, y2 = map(int, box.xyxy[0])
+                    # Clamp coordinates
+                    h, w = frame.shape[:2]
+                    x1, y1 = max(0, x1), max(0, y1)
+                    x2, y2 = min(w, x2), min(h, y2)
+                    
+                    if x2 > x1 and y2 > y1:
+                        crop = frame[y1:y2, x1:x2]
+                        timestamp = int(time.time() * 1000)
+                        filename = f"survivor_{timestamp}.jpg"
+                        filepath = f"app/static/captures/{filename}"
+                        cv2.imwrite(filepath, crop)
+                        
+                        # Add to state
+                        coordinator.add_survivor(lat, lon, conf, image_path=f"/static/captures/{filename}")
             
             with self.lock:
                 ret, buffer = cv2.imencode('.jpg', annotated_frame)

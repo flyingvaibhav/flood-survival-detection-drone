@@ -7,3 +7,5 @@ pydantic
 numpy
 python-multipart
 websockets
+sqlmodel
+aiofiles

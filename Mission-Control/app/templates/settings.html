@@ -1,0 +1,385 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="flex h-full">
+    <!-- Sidebar -->
+    <div class="w-64 bg-slate-900/50 border-r border-slate-700 flex flex-col">
+        <div class="p-6">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                <i data-lucide="settings" class="text-blue-500"></i> Settings
+            </h2>
+        </div>
+        <nav class="flex-1 px-4 space-y-2">
+            <button onclick="showSection('drone-setup')" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-lg transition-colors text-left nav-btn active" data-target="drone-setup">
+                <i data-lucide="plane" class="w-5 h-5 text-blue-400"></i>
+                Drone Setup
+            </button>
+            <button onclick="showSection('profile-settings')" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-lg transition-colors text-left nav-btn" data-target="profile-settings">
+                <i data-lucide="user" class="w-5 h-5 text-pink-400"></i>
+                Profile
+            </button>
+        </nav>
+        <div class="p-4 border-t border-slate-700">
+            <button onclick="saveAllSettings()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold shadow-lg shadow-blue-900/20 transition-all flex items-center justify-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i> Save All
+            </button>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="flex-1 overflow-y-auto p-8 bg-slate-900/30">
+        
+        <!-- Drone Setup Section (Combined) -->
+        <div id="drone-setup" class="settings-section grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <!-- Flight Check Card -->
+            <div class="flex flex-col h-full">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                    <i data-lucide="clipboard-check" class="text-emerald-400"></i> Pre-Flight Checks
+                </h3>
+                <div class="glass-panel p-6 rounded-xl space-y-6 flex-1">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-white font-medium">Mandatory Pre-Flight Check</div>
+                            <div class="text-xs text-slate-500">Require checklist completion before arming</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="fc_pre_flight_check" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-white font-medium">Minimum Battery Level (%)</div>
+                                <div class="text-xs text-slate-500">Prevent takeoff if battery is below this</div>
+                            </div>
+                            <input type="number" id="fc_battery_threshold" class="bg-slate-800 border border-slate-600 rounded p-2 text-white w-24 text-center">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-white font-medium">Min GPS Satellites</div>
+                                <div class="text-xs text-slate-500">Required satellite lock count</div>
+                            </div>
+                            <input type="number" id="fc_gps_satellite_min" class="bg-slate-800 border border-slate-600 rounded p-2 text-white w-24 text-center">
+                        </div>
+                    </div>
+                     <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-white font-medium">IMU Calibration Check</div>
+                            <div class="text-xs text-slate-500">Verify IMU status before flight</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="fc_imu_calibration_check" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drone Settings Card -->
+            <div class="flex flex-col h-full">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                    <i data-lucide="plane" class="text-blue-400"></i> Drone Configuration
+                </h3>
+                <div class="glass-panel p-6 rounded-xl space-y-6 flex-1">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">RTH Altitude (m)</label>
+                            <input type="number" id="ds_rth_altitude" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Max Speed (m/s)</label>
+                            <input type="number" id="ds_max_speed" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Flight Mode</label>
+                            <select id="ds_flight_mode" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                                <option value="STABILIZE">STABILIZE</option>
+                                <option value="LOITER">LOITER</option>
+                                <option value="AUTO">AUTO</option>
+                                <option value="GUIDED">GUIDED</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-700 pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-white font-medium">Geofence Enabled</div>
+                                <div class="text-xs text-slate-500">Restrict flight to designated sector</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="ds_geofence_enabled" class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-white font-medium">Obstacle Avoidance</div>
+                                <div class="text-xs text-slate-500">Active collision prevention</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="ds_obstacle_avoidance" class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Camera Settings Card -->
+            <div class="flex flex-col h-full">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                    <i data-lucide="camera" class="text-purple-400"></i> Camera & AI
+                </h3>
+                <div class="glass-panel p-6 rounded-xl space-y-6 flex-1">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Resolution</label>
+                            <select id="cs_resolution" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                                <option value="720p">720p HD</option>
+                                <option value="1080p">1080p FHD</option>
+                                <option value="4k">4K UHD</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Framerate (FPS)</label>
+                            <input type="number" id="cs_fps" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-white font-medium">AI Confidence Threshold</span>
+                            <span class="text-purple-400 font-mono" id="conf-display">0.50</span>
+                        </div>
+                        <input type="range" id="cs_ai_confidence" min="0.1" max="0.9" step="0.05" 
+                               oninput="document.getElementById('conf-display').innerText = this.value"
+                               class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-white font-medium">Thermal Overlay</div>
+                            <div class="text-xs text-slate-500">Enable IR heatmap processing</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="cs_thermal_enabled" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mavlink Settings Card -->
+            <div class="flex flex-col h-full">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                    <i data-lucide="radio" class="text-amber-400"></i> Mavlink Connection
+                </h3>
+                <div class="glass-panel p-6 rounded-xl space-y-6 flex-1">
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-2">Connection String</label>
+                        <input type="text" id="ms_connection_string" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white font-mono" placeholder="udp:127.0.0.1:14550">
+                        <p class="text-xs text-slate-500 mt-1">Examples: /dev/ttyUSB0, udp:127.0.0.1:14550, tcp:127.0.0.1:5760</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Baud Rate</label>
+                            <select id="ms_baud_rate" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                                <option value="57600">57600</option>
+                                <option value="115200">115200</option>
+                                <option value="921600">921600</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Heartbeat Timeout (s)</label>
+                            <input type="number" id="ms_heartbeat_timeout" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">System ID</label>
+                            <input type="number" id="ms_system_id" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Component ID</label>
+                            <input type="number" id="ms_component_id" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Settings Section -->
+        <div id="profile-settings" class="settings-section hidden">
+            <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <i data-lucide="user" class="text-pink-400"></i> User Profile
+            </h3>
+            <div class="glass-panel p-6 rounded-xl space-y-6">
+                <div class="flex items-center gap-6 mb-6">
+                    <div class="w-20 h-20 rounded-full bg-slate-700 flex items-center justify-center text-3xl font-bold text-slate-400">
+                        <i data-lucide="user" class="w-10 h-10"></i>
+                    </div>
+                    <div>
+                        <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded text-sm text-white transition-colors">Change Avatar</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-2">Pilot Name</label>
+                        <input type="text" id="ps_pilot_name" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-2">Organization</label>
+                        <input type="text" id="ps_organization" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-2">Theme</label>
+                    <select id="ps_theme" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+                        <option value="dark">Dark Mission Control</option>
+                        <option value="light">Light Field Ops</option>
+                        <option value="high-contrast">High Contrast</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Navigation Logic
+    function showSection(sectionId) {
+        // Hide all sections
+        document.querySelectorAll('.settings-section').forEach(el => el.classList.add('hidden'));
+        // Show target section
+        document.getElementById(sectionId).classList.remove('hidden');
+        
+        // Update active nav state
+        document.querySelectorAll('.nav-btn').forEach(el => {
+            el.classList.remove('bg-slate-800', 'text-white');
+            el.classList.add('text-slate-300');
+            if(el.dataset.target === sectionId) {
+                el.classList.add('bg-slate-800', 'text-white');
+                el.classList.remove('text-slate-300');
+            }
+        });
+    }
+
+    // Data Loading/Saving Logic
+    document.addEventListener('DOMContentLoaded', loadSettings);
+
+    async function loadSettings() {
+        try {
+            const response = await fetch('/api/settings/');
+            const data = await response.json();
+            
+            // Flight Check
+            document.getElementById('fc_pre_flight_check').checked = data.flight_check.pre_flight_check;
+            document.getElementById('fc_battery_threshold').value = data.flight_check.battery_threshold;
+            document.getElementById('fc_gps_satellite_min').value = data.flight_check.gps_satellite_min;
+            document.getElementById('fc_imu_calibration_check').checked = data.flight_check.imu_calibration_check;
+
+            // Drone Settings
+            document.getElementById('ds_rth_altitude').value = data.drone.rth_altitude;
+            document.getElementById('ds_max_speed').value = data.drone.max_speed;
+            document.getElementById('ds_flight_mode').value = data.drone.flight_mode;
+            document.getElementById('ds_geofence_enabled').checked = data.drone.geofence_enabled;
+            document.getElementById('ds_obstacle_avoidance').checked = data.drone.obstacle_avoidance;
+
+            // Camera Settings
+            document.getElementById('cs_resolution').value = data.camera.resolution;
+            document.getElementById('cs_fps').value = data.camera.fps;
+            document.getElementById('cs_ai_confidence').value = data.camera.ai_confidence;
+            document.getElementById('conf-display').innerText = data.camera.ai_confidence;
+            document.getElementById('cs_thermal_enabled').checked = data.camera.thermal_enabled;
+
+            // Mavlink Settings
+            document.getElementById('ms_connection_string').value = data.mavlink.connection_string;
+            document.getElementById('ms_baud_rate').value = data.mavlink.baud_rate;
+            document.getElementById('ms_heartbeat_timeout').value = data.mavlink.heartbeat_timeout;
+            document.getElementById('ms_system_id').value = data.mavlink.system_id;
+            document.getElementById('ms_component_id').value = data.mavlink.component_id;
+
+            // Profile Settings
+            document.getElementById('ps_pilot_name').value = data.profile.pilot_name;
+            document.getElementById('ps_organization').value = data.profile.organization;
+            document.getElementById('ps_theme').value = data.profile.theme;
+
+        } catch (error) {
+            console.error('Error loading settings:', error);
+            alert('Failed to load settings');
+        }
+    }
+
+    async function saveAllSettings() {
+        const settings = {
+            flight_check: {
+                pre_flight_check: document.getElementById('fc_pre_flight_check').checked,
+                battery_threshold: parseInt(document.getElementById('fc_battery_threshold').value),
+                gps_satellite_min: parseInt(document.getElementById('fc_gps_satellite_min').value),
+                imu_calibration_check: document.getElementById('fc_imu_calibration_check').checked,
+                propeller_check: true // Hidden field default
+            },
+            drone: {
+                rth_altitude: parseInt(document.getElementById('ds_rth_altitude').value),
+                max_speed: parseInt(document.getElementById('ds_max_speed').value),
+                flight_mode: document.getElementById('ds_flight_mode').value,
+                geofence_enabled: document.getElementById('ds_geofence_enabled').checked,
+                obstacle_avoidance: document.getElementById('ds_obstacle_avoidance').checked
+            },
+            camera: {
+                resolution: document.getElementById('cs_resolution').value,
+                fps: parseInt(document.getElementById('cs_fps').value),
+                ai_confidence: parseFloat(document.getElementById('cs_ai_confidence').value),
+                thermal_enabled: document.getElementById('cs_thermal_enabled').checked,
+                auto_record: true
+            },
+            mavlink: {
+                connection_string: document.getElementById('ms_connection_string').value,
+                baud_rate: parseInt(document.getElementById('ms_baud_rate').value),
+                heartbeat_timeout: parseInt(document.getElementById('ms_heartbeat_timeout').value),
+                system_id: parseInt(document.getElementById('ms_system_id').value),
+                component_id: parseInt(document.getElementById('ms_component_id').value)
+            },
+            profile: {
+                pilot_name: document.getElementById('ps_pilot_name').value,
+                organization: document.getElementById('ps_organization').value,
+                theme: document.getElementById('ps_theme').value,
+                notifications: true
+            }
+        };
+
+        try {
+            const response = await fetch('/api/settings/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(settings)
+            });
+
+            if (response.ok) {
+                const btn = document.querySelector('button[onclick="saveAllSettings()"]');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Saved!';
+                btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                btn.classList.add('bg-green-600', 'hover:bg-green-500');
+                lucide.createIcons();
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                    btn.classList.remove('bg-green-600', 'hover:bg-green-500');
+                    lucide.createIcons();
+                }, 2000);
+            } else {
+                throw new Error('Failed to save');
+            }
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            alert('Failed to save settings');
+        }
+    }
+</script>
+{% endblock %}

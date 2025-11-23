@@ -1,0 +1,36 @@
+{
+    "flight_check": {
+        "pre_flight_check": true,
+        "battery_threshold": 20,
+        "gps_satellite_min": 6,
+        "imu_calibration_check": true,
+        "propeller_check": true
+    },
+    "drone": {
+        "rth_altitude": 30,
+        "max_speed": 10,
+        "geofence_enabled": true,
+        "obstacle_avoidance": true,
+        "flight_mode": "STABILIZE"
+    },
+    "camera": {
+        "resolution": "1080p",
+        "fps": 30,
+        "thermal_enabled": false,
+        "auto_record": true,
+        "ai_confidence": 0.5
+    },
+    "mavlink": {
+        "connection_string": "udp:127.0.0.1:14550",
+        "baud_rate": 57600,
+        "system_id": 1,
+        "component_id": 1,
+        "heartbeat_timeout": 5
+    },
+    "profile": {
+        "pilot_name": "Commander",
+        "organization": "Disaster Relief Corp",
+        "theme": "dark",
+        "notifications": true
+    }
+}
