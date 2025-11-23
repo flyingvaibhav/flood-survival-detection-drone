@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from contextlib import asynccontextmanager
-from app.api import endpoints, settings as settings_api
+from app.api import endpoints, settings as settings_api, simulation
 from app.core.config import settings
 from app.services.detector import streamer
 from app.core.database import create_db_and_tables
@@ -27,6 +27,7 @@ templates = Jinja2Templates(directory="app/templates")
 # Include API router
 app.include_router(endpoints.router, prefix="/api")
 app.include_router(settings_api.router, prefix="/api/settings", tags=["settings"])
+app.include_router(simulation.router, prefix="/api/simulation", tags=["simulation"])
 
 @app.get("/")
 def read_root(request: Request):
@@ -35,6 +36,10 @@ def read_root(request: Request):
 @app.get("/dashboard")
 def read_dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request, "title": settings.PROJECT_NAME + " - Dashboard"})
+
+@app.get("/mission-brief")
+def read_mission_brief(request: Request):
+    return templates.TemplateResponse("mission_brief.html", {"request": request, "title": settings.PROJECT_NAME + " - Mission Brief"})
 
 @app.get("/settings")
 def read_settings(request: Request):

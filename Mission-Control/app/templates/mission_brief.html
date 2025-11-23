@@ -1,0 +1,187 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="flex h-full w-full">
+    <!-- Sidebar -->
+    <div class="w-64 bg-slate-900 border-r border-slate-700 p-4 flex flex-col gap-2">
+        <a href="/dashboard" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+            Dashboard
+        </a>
+        <a href="/mission-brief" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-lg bg-slate-800 text-white transition-colors">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+            Mission Brief
+        </a>
+        <a href="/settings" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+            Settings
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-8 overflow-y-auto">
+        <h2 class="text-3xl font-bold text-white mb-8">Mission Simulation Brief</h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Upload Section -->
+            <div class="glass-panel p-6 rounded-xl">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <i data-lucide="upload-cloud" class="text-blue-400"></i> Upload Aerial Imagery
+                </h3>
+                <div class="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer" id="drop-zone">
+                    <input type="file" id="file-input" class="hidden" accept="image/*">
+                    <i data-lucide="image-plus" class="w-12 h-12 text-slate-500 mx-auto mb-4"></i>
+                    <p class="text-slate-300 mb-2">Drag & Drop or Click to Upload</p>
+                    <p class="text-xs text-slate-500">Supported formats: JPG, PNG</p>
+                </div>
+                <div id="file-info" class="mt-4 hidden">
+                    <div class="flex items-center gap-3 bg-slate-800 p-3 rounded">
+                        <i data-lucide="file" class="text-blue-400"></i>
+                        <span id="filename" class="text-sm text-white truncate">filename.jpg</span>
+                        <button id="remove-file" class="ml-auto text-red-400 hover:text-red-300">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Drone Mode Toggle -->
+                    <div class="mt-4 bg-slate-800 p-3 rounded flex items-center justify-between">
+                        <div>
+                            <div class="text-sm font-medium text-white">Single Drone Mode</div>
+                            <div class="text-xs text-slate-400">Deliver up to 20 kits before RTH</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="single-drone-mode" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    <button id="start-sim-btn" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="play" class="w-4 h-4"></i> Start Simulation
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="glass-panel p-6 rounded-xl">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <i data-lucide="monitor-play" class="text-emerald-400"></i> Simulation Output
+                </h3>
+                
+                <div id="sim-placeholder" class="aspect-video bg-slate-800 rounded-lg flex items-center justify-center flex-col gap-4">
+                    <i data-lucide="activity" class="w-16 h-16 text-slate-700"></i>
+                    <p class="text-slate-500">Waiting for mission data...</p>
+                </div>
+
+                <div id="sim-loading" class="hidden aspect-video bg-slate-800 rounded-lg flex items-center justify-center flex-col gap-4">
+                    <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-blue-400 animate-pulse">Processing Simulation...</p>
+                    <p class="text-xs text-slate-500">Detecting survivors • Calculating paths • Generating video</p>
+                </div>
+
+                <div id="sim-result" class="hidden space-y-4">
+                    <video id="sim-video" controls class="w-full rounded-lg border border-slate-700 shadow-lg"></video>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-800 p-4 rounded-lg text-center">
+                            <div class="text-xs text-slate-500 uppercase tracking-wider">Survivors Detected</div>
+                            <div id="survivor-count" class="text-3xl font-bold text-white">0</div>
+                        </div>
+                        <div class="bg-slate-800 p-4 rounded-lg text-center">
+                            <div class="text-xs text-slate-500 uppercase tracking-wider">Mission Status</div>
+                            <div class="text-xl font-bold text-emerald-400">COMPLETED</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileInfo = document.getElementById('file-info');
+    const filenameDisplay = document.getElementById('filename');
+    const removeFileBtn = document.getElementById('remove-file');
+    const startBtn = document.getElementById('start-sim-btn');
+    
+    let selectedFile = null;
+
+    // Drag & Drop
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-blue-500', 'bg-slate-800/50');
+    });
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-blue-500', 'bg-slate-800/50');
+    });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-500', 'bg-slate-800/50');
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) handleFile(e.target.files[0]);
+    });
+
+    function handleFile(file) {
+        selectedFile = file;
+        filenameDisplay.innerText = file.name;
+        dropZone.classList.add('hidden');
+        fileInfo.classList.remove('hidden');
+    }
+
+    removeFileBtn.addEventListener('click', () => {
+        selectedFile = null;
+        fileInput.value = '';
+        fileInfo.classList.add('hidden');
+        dropZone.classList.remove('hidden');
+    });
+
+    startBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+
+        // UI State: Loading
+        document.getElementById('sim-placeholder').classList.add('hidden');
+        document.getElementById('sim-result').classList.add('hidden');
+        document.getElementById('sim-loading').classList.remove('hidden');
+        startBtn.disabled = true;
+        startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('single_drone_mode', document.getElementById('single-drone-mode').checked);
+
+        try {
+            const response = await fetch('/api/simulation/run', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) throw new Error('Simulation failed');
+
+            const result = await response.json();
+            
+            // UI State: Success
+            document.getElementById('sim-loading').classList.add('hidden');
+            document.getElementById('sim-result').classList.remove('hidden');
+            
+            const video = document.getElementById('sim-video');
+            video.src = result.video_url;
+            video.load();
+            video.play();
+
+            document.getElementById('survivor-count').innerText = result.survivors_count;
+
+        } catch (error) {
+            console.error(error);
+            alert('Simulation failed. Check console for details.');
+            document.getElementById('sim-loading').classList.add('hidden');
+            document.getElementById('sim-placeholder').classList.remove('hidden');
+        } finally {
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    });
+</script>
+{% endblock %}
