@@ -15,6 +15,6 @@ class Settings:
     DEFAULT_LON: float = 77.2090
     
     # Model
-    MODEL_PATH: str = "../best.pt"  # Assumes model is in root or accessible
+    MODEL_PATH: str = "best.pt"  # Assumes model is in root or accessible
 
 settings = Settings()

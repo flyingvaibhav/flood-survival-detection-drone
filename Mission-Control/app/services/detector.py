@@ -97,7 +97,16 @@ class VideoStreamer:
     def generate_frames(self):
         while True:
             if not self.running:
-                time.sleep(0.1)
+                # Yield a placeholder frame to prevent browser hanging
+                blank_frame = np.zeros((480, 640, 3), dtype=np.uint8)
+                cv2.putText(blank_frame, "SYSTEM IDLE - WAITING FOR SCAN", (80, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (100, 100, 100), 2)
+                ret, buffer = cv2.imencode('.jpg', blank_frame)
+                frame_bytes = buffer.tobytes()
+                
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                
+                time.sleep(1.0) # Low FPS for idle
                 continue
                 
             with self.lock:
