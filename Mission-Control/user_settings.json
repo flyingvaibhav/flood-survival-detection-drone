@@ -19,7 +19,7 @@
         "thermal_enabled": false,
         "auto_record": true,
         "ai_confidence": 0.5,
-        "camera_source": 1
+        "camera_source": 0
     },
     "mavlink": {
         "connection_string": "udp:127.0.0.1:14550",
