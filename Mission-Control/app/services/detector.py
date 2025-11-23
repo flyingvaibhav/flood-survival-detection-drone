@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 from ultralytics import YOLO
 from app.core.config import settings
 from app.services.mission.coordinator import coordinator
@@ -18,6 +19,15 @@ class VideoStreamer:
         self.thread = None
         self.read_thread = None
         
+    def set_source(self, source):
+        if self.source == source:
+            return
+        print(f"Switching camera source from {self.source} to {source}")
+        self.source = source
+        if self.running:
+            self.stop()
+            self.start()
+
     def start(self):
         if self.running:
             return
@@ -95,7 +105,12 @@ class VideoStreamer:
                         crop = frame[y1:y2, x1:x2]
                         timestamp = int(time.time() * 1000)
                         filename = f"survivor_{timestamp}.jpg"
-                        filepath = f"app/static/captures/{filename}"
+                        
+                        # Ensure directory exists
+                        save_dir = "app/static/captures"
+                        os.makedirs(save_dir, exist_ok=True)
+                        
+                        filepath = f"{save_dir}/{filename}"
                         cv2.imwrite(filepath, crop)
                         
                         # Add to state

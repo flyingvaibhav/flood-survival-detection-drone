@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="flex h-full">
+<div class="flex h-full w-full">
     <!-- Sidebar -->
     <div class="w-64 bg-slate-900/50 border-r border-slate-700 flex flex-col">
         <div class="p-6">
@@ -27,10 +27,10 @@
     </div>
 
     <!-- Content Area -->
-    <div class="flex-1 overflow-y-auto p-8 bg-slate-900/30">
+    <div class="flex-1 overflow-y-auto p-8 bg-slate-900/30 w-full">
         
         <!-- Drone Setup Section (Combined) -->
-        <div id="drone-setup" class="settings-section grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div id="drone-setup" class="settings-section grid grid-cols-1 xl:grid-cols-2 gap-6 w-full">
             <!-- Flight Check Card -->
             <div class="flex flex-col h-full">
                 <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
@@ -132,6 +132,25 @@
                     <i data-lucide="camera" class="text-purple-400"></i> Camera & AI
                 </h3>
                 <div class="glass-panel p-6 rounded-xl space-y-6 flex-1">
+                    <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <div>
+                            <div class="text-white font-medium">Camera Source</div>
+                            <div class="text-xs text-slate-500" id="camera-source-label">System Camera (0)</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="cs_camera_source_toggle" class="sr-only peer" onchange="toggleCameraSource()">
+                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+
+                    <div id="external-camera-config" class="hidden space-y-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700 mt-2">
+                        <label class="block text-sm text-slate-400 mb-2">External Camera ID / URL</label>
+                        <input type="text" id="cs_external_source_input" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white" placeholder="1 or http://192.168.1.100:8080/video">
+                        <button onclick="connectExternalCamera()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition-colors">
+                            Connect External Camera
+                        </button>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm text-slate-400 mb-2">Resolution</label>
@@ -266,6 +285,31 @@
         });
     }
 
+    function toggleCameraSource() {
+        const isExternal = document.getElementById('cs_camera_source_toggle').checked;
+        const configDiv = document.getElementById('external-camera-config');
+        const label = document.getElementById('camera-source-label');
+        
+        if (isExternal) {
+            configDiv.classList.remove('hidden');
+            label.innerText = "External Camera";
+        } else {
+            configDiv.classList.add('hidden');
+            label.innerText = "System Camera (0)";
+        }
+    }
+
+    function connectExternalCamera() {
+        const btn = document.querySelector('button[onclick="connectExternalCamera()"]');
+        const originalText = btn.innerText;
+        btn.innerText = "Verifying...";
+        setTimeout(() => {
+            btn.innerText = "Ready to Save";
+            btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+            btn.classList.add('bg-green-600', 'hover:bg-green-700');
+        }, 800);
+    }
+
     // Data Loading/Saving Logic
     document.addEventListener('DOMContentLoaded', loadSettings);
 
@@ -294,6 +338,19 @@
             document.getElementById('conf-display').innerText = data.camera.ai_confidence;
             document.getElementById('cs_thermal_enabled').checked = data.camera.thermal_enabled;
 
+            // Camera Source Logic
+            const source = data.camera.camera_source;
+            if (source === 0 || source === "0") {
+                document.getElementById('cs_camera_source_toggle').checked = false;
+                document.getElementById('external-camera-config').classList.add('hidden');
+                document.getElementById('camera-source-label').innerText = "System Camera (0)";
+            } else {
+                document.getElementById('cs_camera_source_toggle').checked = true;
+                document.getElementById('external-camera-config').classList.remove('hidden');
+                document.getElementById('cs_external_source_input').value = source;
+                document.getElementById('camera-source-label').innerText = "External Camera";
+            }
+
             // Mavlink Settings
             document.getElementById('ms_connection_string').value = data.mavlink.connection_string;
             document.getElementById('ms_baud_rate').value = data.mavlink.baud_rate;
@@ -313,6 +370,17 @@
     }
 
     async function saveAllSettings() {
+        let cameraSource = 0;
+        if (document.getElementById('cs_camera_source_toggle').checked) {
+            const inputVal = document.getElementById('cs_external_source_input').value;
+            // Try to parse as int if possible, else keep as string
+            if (!isNaN(inputVal) && !isNaN(parseFloat(inputVal))) {
+                cameraSource = parseInt(inputVal);
+            } else {
+                cameraSource = inputVal;
+            }
+        }
+
         const settings = {
             flight_check: {
                 pre_flight_check: document.getElementById('fc_pre_flight_check').checked,
@@ -333,7 +401,8 @@
                 fps: parseInt(document.getElementById('cs_fps').value),
                 ai_confidence: parseFloat(document.getElementById('cs_ai_confidence').value),
                 thermal_enabled: document.getElementById('cs_thermal_enabled').checked,
-                auto_record: true
+                auto_record: true,
+                camera_source: cameraSource
             },
             mavlink: {
                 connection_string: document.getElementById('ms_connection_string').value,

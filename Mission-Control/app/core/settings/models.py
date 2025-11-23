@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Union
 
 class FlightCheckSettings(BaseModel):
     pre_flight_check: bool = True
@@ -21,6 +21,7 @@ class CameraSettings(BaseModel):
     thermal_enabled: bool = False
     auto_record: bool = True
     ai_confidence: float = 0.5
+    camera_source: Union[int, str] = 0
 
 class MavlinkSettings(BaseModel):
     connection_string: str = "udp:127.0.0.1:14550"

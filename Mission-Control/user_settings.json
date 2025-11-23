@@ -14,11 +14,12 @@
         "flight_mode": "STABILIZE"
     },
     "camera": {
-        "resolution": "1080p",
+        "resolution": "720p",
         "fps": 30,
         "thermal_enabled": false,
         "auto_record": true,
-        "ai_confidence": 0.5
+        "ai_confidence": 0.5,
+        "camera_source": 1
     },
     "mavlink": {
         "connection_string": "udp:127.0.0.1:14550",
